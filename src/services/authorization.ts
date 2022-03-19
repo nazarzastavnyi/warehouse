@@ -1,8 +1,8 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import bcrypt from 'bcryptjs';
 import randomstring from 'randomstring';
-import { User, UserResponse } from '../models/User';
-import { Token, ErrorResponse } from '../models/Main';
+import { UserRequest } from '../interfaces/User';
+import { Token, ErrorResponse } from '../interfaces/Main';
 
 export class AuthorizationService {
   private db : DocumentClient;
@@ -21,11 +21,12 @@ export class AuthorizationService {
       .promise();
   }
 
-  async singUp(user: User): Promise<UserResponse | ErrorResponse> {
+  async singUp(user: UserRequest): Promise<DocumentClient.GetItemOutput | ErrorResponse> {
+
     const isExist = await this.db
       .get({
         TableName: this.tableName,
-        Key: { login: user.login },
+        Key: user,
       })
       .promise();
 
@@ -36,19 +37,13 @@ export class AuthorizationService {
       };
     }
 
-    user.password = bcrypt.hashSync(user.password, 10);
-
-    await this.db.put({
+    return this.db.put({
       TableName: this.tableName,
-      Item: user
+      Item: user,
     }).promise();
-
-    return {
-      login: user.login
-    };
   }
 
-  async singIn(user: User): Promise<Token | ErrorResponse> {
+  async singIn(user: UserRequest): Promise<Token | ErrorResponse> {
     const savedUser = await this.db
       .get({
         TableName: this.tableName,

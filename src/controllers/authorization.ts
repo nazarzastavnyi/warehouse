@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { User } from '../models/User';
-import { Token } from '../models/Main';
+import { UserRequest } from '../interfaces/User';
+import { Token } from '../interfaces/Main';
 import { AuthorizationService } from '../services/authorization';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { AuthorizationMiddleware } from '../middlewares/authorization';
@@ -31,7 +31,7 @@ export class AuthorizationController {
 
   private singUp = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const userData: User = request.body;
+      const userData: UserRequest = request.body;
 
       const result = await this.service.singUp(userData);
 
@@ -45,7 +45,7 @@ export class AuthorizationController {
 
   private singIn = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const userData: User = request.body;
+      const userData: UserRequest = request.body;
 
       const result = await this.service.singIn(userData);
 
