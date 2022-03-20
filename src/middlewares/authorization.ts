@@ -4,14 +4,10 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthorizationService } from '../services/authorization';
 
 export class AuthorizationMiddleware {
-  private authService: AuthorizationService;
-
-  constructor(service: AuthorizationService) {
-    this.authService = service;
-  }
+  private service: AuthorizationService;
 
   async authMiddleware(request: Request, response: Response, next: NextFunction) {
-    const token = request.headers['authorization'].split('Bearer ')[1];
+    const token = request.headers['authorization']?.split('Bearer ')[1];
 
     if (!token) {
       return response.status(401).send({
@@ -19,13 +15,17 @@ export class AuthorizationMiddleware {
       });
     }
 
-    const isExist = await this.authService.getUserByToken(token);
+    const isExist = await this.service.getUserByToken(token);
 
-    if (!isExist.Item) {
+    if (!isExist.Items[0]?.refresh_token) {
       return response.status(401).send({
         message: 'token is not valid'
       });
     }
+
+    request.login = isExist.Items[0].login;
+    request.token = token;
+
     next();
   }
 }

@@ -13,7 +13,7 @@ export class AuthorizationController {
   constructor(db: DocumentClient) {
     this.router = Router();
     this.service = new AuthorizationService(db);
-    this.middleware = new AuthorizationMiddleware(this.service);
+    this.middleware = new AuthorizationMiddleware();
     
     this.initializeRoutes();
   }
@@ -26,7 +26,7 @@ export class AuthorizationController {
     this.router.post('/singUp', this.singUp);
     this.router.post('/singIn', this.singIn);
     this.router.post('/refreshToken', this.refreshToken);
-    this.router.post('/logout', this.middleware.authMiddleware, this.logout);
+    this.router.post('/logout', this.middleware.authMiddleware.bind(this), this.logout);
   }
 
   private singUp = async (request: Request, response: Response, next: NextFunction) => {
@@ -71,8 +71,7 @@ export class AuthorizationController {
 
   private logout = async (request: Request, response: Response, next: NextFunction) => {
     try {
-
-      const result = await this.service.logout(request.body.token);
+      const result = await this.service.logout(request.login, request.token);
 
       response.send(result);
     } catch (error) {

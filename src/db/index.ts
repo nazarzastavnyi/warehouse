@@ -8,8 +8,8 @@ const dynamodb = new DynamoDb({
   secretAccessKey: process.env.AWS_SECRET_KEY,
 });
 
-const createTableIfNotExist = (params: DynamoDb.CreateTableInput): void => {
-  dynamodb.listTables({}).promise().then(async (data) => {
+const createTableIfNotExist = async (params: DynamoDb.CreateTableInput): Promise<void> => {
+  await dynamodb.listTables({}).promise().then(async (data) => {
     const exists = data.TableNames
       .filter(name => {
         return name === params.TableName;

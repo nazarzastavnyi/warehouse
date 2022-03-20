@@ -9,8 +9,8 @@ export const Warehouse = {
     { AttributeName: 'name', AttributeType: 'S' },
   ],
   ProvisionedThroughput: {
-      ReadCapacityUnits: 1,
-      WriteCapacityUnits: 1
+    ReadCapacityUnits: 1,
+    WriteCapacityUnits: 1
   }
 };
   

@@ -12,11 +12,18 @@ export class AuthorizationService {
     this.db = db;
   }
 
-  async getUserByToken(token: string): Promise<DocumentClient.GetItemOutput> {
+  async getUserByToken(token: string): Promise<DocumentClient.QueryOutput> {
     return this.db
-      .get({
+      .query({
         TableName: this.tableName,
-        Key: {token},
+        IndexName : 'token_index',
+        KeyConditionExpression : '#token = :token', 
+        ExpressionAttributeValues : {
+          ':token' : token       
+        },
+        ExpressionAttributeNames: {
+          '#token': 'token',
+        }
       })
       .promise();
   }
@@ -26,7 +33,9 @@ export class AuthorizationService {
     const isExist = await this.db
       .get({
         TableName: this.tableName,
-        Key: user,
+        Key: {
+          login: user.login
+        },
       })
       .promise();
 
@@ -36,6 +45,8 @@ export class AuthorizationService {
         message: 'User already created'
       };
     }
+
+    user.password = bcrypt.hashSync(user.password, 10);
 
     return this.db.put({
       TableName: this.tableName,
@@ -50,7 +61,8 @@ export class AuthorizationService {
         Key: { login: user.login },
       })
       .promise();
-    if (bcrypt.compare(savedUser.Item.password, user.password)) {
+    const isLogin = await bcrypt.compare(savedUser.Item.password, user.password);
+    if (isLogin) {
       return {
         status: 401,
         message: 'Wrong login or password'
@@ -63,14 +75,10 @@ export class AuthorizationService {
   }
 
   async refreshToken(tokens: Token) {
-    const savedUser = await this.db
-      .get({
-        TableName: this.tableName,
-        Key: tokens,
-      })
-      .promise();
+    const savedUser = await this.getUserByToken(tokens.token);
+    console.log(savedUser)
 
-    if (!savedUser.Item) {
+    if (!savedUser.Items[0] || savedUser.Items[0].refresh_token !== tokens.refresh_token) {
       return {
         status: 403,
         message: 'Tokens is wrong'
@@ -80,26 +88,29 @@ export class AuthorizationService {
     const new_token = randomstring.generate(16);
     const refresh_token = randomstring.generate(16);
 
-    return this.updateTokens(savedUser.Item.login, new_token, refresh_token);
+    return this.updateTokens(savedUser.Items[0].login, new_token, refresh_token);
   }
 
-  async logout(token: string) {
-    const savedUser = await this.getUserByToken(token);
+  async logout(login: string, token: string) {
 
-    return this.updateTokens(savedUser.Item.login, null, null);
+    return this.updateTokens(login, token, null);
   }
 
 
-  private updateTokens(login: string, token: string, refresh_token: string): Token {
+  private async updateTokens(login: string, token: string, refresh_token: string): Promise<Token> {
 
-    this.db.update({
+    await this.db.update({
       TableName: this.tableName,
       Key: { login },
       UpdateExpression:
-          'set token = :token, token_reset = :token_reset',
+          'set #token = :token, #refresh_token = :refresh_token',
       ExpressionAttributeValues: {
         ':token': token,
-        ':token_reset': refresh_token
+        ':refresh_token': refresh_token
+      },
+      ExpressionAttributeNames: {
+        '#token': 'token',
+        '#refresh_token': 'refresh_token'
       },
       ReturnValues: 'ALL_NEW',
     }).promise();

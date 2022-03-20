@@ -70,6 +70,6 @@
     "forceConsistentCasingInFileNames": true,        /* Disallow inconsistently-cased references to the same file. */
 
     "outDir": "./dist/",
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./src/lib", "./node_modules/@types"],
   }
 }
