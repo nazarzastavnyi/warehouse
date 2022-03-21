@@ -4,7 +4,7 @@
 npm i
 npm run build
 ```
-***Start project***
+***Start project***<br/>
 First you need to set up env (you can see .env.example)
 ```
 PORT=8000
@@ -16,8 +16,8 @@ AWS_SECRET_KEY=
 ```
 npm start
 ```
-***Collection***
-You can import my collection from folder ./postman
-Also need to set up env 
-url http://localhost:8000
+***Collection***<br/>
+You can import my collection from folder ./postman<br/>
+Also need to set up env<br/> 
+url http://localhost:8000<br/>
 token - you will get when you will singin
