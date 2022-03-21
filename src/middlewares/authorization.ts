@@ -3,9 +3,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthorizationService } from '../services/authorization';
 import { BasicError } from '../utils/error';
+import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 export class AuthorizationMiddleware {
-  private service: AuthorizationService;
+  private db: DocumentClient;
 
   async authMiddleware(request: Request, response: Response, next: NextFunction) {
     try {
@@ -15,8 +16,9 @@ export class AuthorizationMiddleware {
       if (!token) {
         throw authError;
       }
+      const service: AuthorizationService = new AuthorizationService(this.db);
 
-      const isExist = await this.service.getUserByToken(token);
+      const isExist = await service.getUserByToken(token);
 
       if (!isExist.Items[0]?.is_auth) {
         throw authError;

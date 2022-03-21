@@ -2,7 +2,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import bcrypt from 'bcryptjs';
 import randomstring from 'randomstring';
 import { UserRequest } from '../interfaces/User';
-import { Token, ErrorResponse } from '../interfaces/Main';
+import { Token } from '../interfaces/Token';
 import { BasicError } from '../utils/error';
 
 export class AuthorizationService {
@@ -29,7 +29,7 @@ export class AuthorizationService {
       .promise();
   }
 
-  async singUp(user: UserRequest): Promise<DocumentClient.GetItemOutput | ErrorResponse> {
+  async singUp(user: UserRequest): Promise<DocumentClient.GetItemOutput> {
 
     const isExist = await this.db
       .get({
@@ -52,7 +52,7 @@ export class AuthorizationService {
     }).promise();
   }
 
-  async singIn(user: UserRequest): Promise<Token | ErrorResponse> {
+  async singIn(user: UserRequest): Promise<Token> {
     const savedUser = await this.db
       .get({
         TableName: this.tableName,

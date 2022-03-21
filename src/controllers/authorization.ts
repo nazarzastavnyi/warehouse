@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { UserRequest } from '../interfaces/User';
-import { Token } from '../interfaces/Main';
+import { Token } from '../interfaces/Token';
 import { AuthorizationService } from '../services/authorization';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { AuthorizationMiddleware } from '../middlewares/authorization';
@@ -9,9 +9,11 @@ export class AuthorizationController {
   private router: Router;
   private service: AuthorizationService;
   private middleware: AuthorizationMiddleware;
+  private db: DocumentClient;
 
   constructor(db: DocumentClient) {
     this.router = Router();
+    this.db = db;
     this.service = new AuthorizationService(db);
     this.middleware = new AuthorizationMiddleware();
     
