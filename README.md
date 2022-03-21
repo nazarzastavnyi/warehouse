@@ -6,11 +6,13 @@ npm run build
 ```
 ***Start project***
 First you need to set up env (you can see .env.example)
+```
 PORT=8000
 ENV=development
 AWS_REGION=
 AWS_ACCESS_ID=
 AWS_SECRET_KEY=
+```
 ```
 npm start
 ```
