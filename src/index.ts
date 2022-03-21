@@ -3,6 +3,7 @@ dotenv.config({ path: '.env' });
 
 import express from 'express';
 import createDynamoDBClient from './db';
+import { errorHandler } from './middlewares/error';
 
 import { AuthorizationController } from './controllers/authorization';
 
@@ -12,5 +13,6 @@ app.use(express.json());
 const db = createDynamoDBClient();
 
 app.use(new AuthorizationController(db).getRouter());
+app.use(errorHandler);
 
 app.listen(process.env.PORT);

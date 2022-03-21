@@ -71,7 +71,7 @@ export class AuthorizationController {
 
   private logout = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const result = await this.service.logout(request.login, request.token);
+      const result = await this.service.logout(request.login);
 
       response.send(result);
     } catch (error) {

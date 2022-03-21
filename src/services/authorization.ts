@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import randomstring from 'randomstring';
 import { UserRequest } from '../interfaces/User';
 import { Token, ErrorResponse } from '../interfaces/Main';
+import { BasicError } from '../utils/error';
 
 export class AuthorizationService {
   private db : DocumentClient;
@@ -40,10 +41,7 @@ export class AuthorizationService {
       .promise();
 
     if (isExist.Item) {
-      return {
-        status: 403,
-        message: 'User already created'
-      };
+      throw new BasicError(403, 'User already exist');
     }
 
     user.password = bcrypt.hashSync(user.password, 10);
@@ -63,10 +61,7 @@ export class AuthorizationService {
       .promise();
     const isLogin = await bcrypt.compare(savedUser.Item.password, user.password);
     if (isLogin) {
-      return {
-        status: 401,
-        message: 'Wrong login or password'
-      };
+      throw new BasicError(401, 'Wrong credentials');
     }
     const token = randomstring.generate(16);
     const refresh_token = randomstring.generate(16);
@@ -76,13 +71,9 @@ export class AuthorizationService {
 
   async refreshToken(tokens: Token) {
     const savedUser = await this.getUserByToken(tokens.token);
-    console.log(savedUser)
 
     if (!savedUser.Items[0] || savedUser.Items[0].refresh_token !== tokens.refresh_token) {
-      return {
-        status: 403,
-        message: 'Tokens is wrong'
-      };
+      throw new BasicError(403, 'One of token is wrong');
     }
 
     const new_token = randomstring.generate(16);
@@ -91,9 +82,19 @@ export class AuthorizationService {
     return this.updateTokens(savedUser.Items[0].login, new_token, refresh_token);
   }
 
-  async logout(login: string, token: string) {
+  async logout(login: string) {
 
-    return this.updateTokens(login, token, null);
+    return this.db.update({
+      TableName: this.tableName,
+      Key: { login },
+      UpdateExpression: 'set #is_auth = :is_auth',
+      ExpressionAttributeValues: {
+        ':is_auth': false,
+      },
+      ExpressionAttributeNames: {
+        '#is_auth': 'is_auth',
+      }
+    }).promise();
   }
 
 
@@ -103,14 +104,16 @@ export class AuthorizationService {
       TableName: this.tableName,
       Key: { login },
       UpdateExpression:
-          'set #token = :token, #refresh_token = :refresh_token',
+          'set #token = :token, #refresh_token = :refresh_token, #is_auth = :is_auth',
       ExpressionAttributeValues: {
         ':token': token,
-        ':refresh_token': refresh_token
+        ':refresh_token': refresh_token,
+        ':is_auth': true
       },
       ExpressionAttributeNames: {
         '#token': 'token',
-        '#refresh_token': 'refresh_token'
+        '#refresh_token': 'refresh_token',
+        '#is_auth': 'is_auth'
       },
       ReturnValues: 'ALL_NEW',
     }).promise();
