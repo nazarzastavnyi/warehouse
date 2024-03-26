@@ -1,5 +1,5 @@
 # warehouse
-***Technologies***
+***Technologies***<br/>
 Typescript, Express, Webpack, AWS Dynamodb, Postman<br/>
 ***Set up project***
 ```
