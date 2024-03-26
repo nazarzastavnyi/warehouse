@@ -1,4 +1,6 @@
 # warehouse
+***Technologies***
+Typescript, Express, Webpack, AWS Dynamodb, Postman
 ***Set up project***
 ```
 npm i
